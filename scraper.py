@@ -2,7 +2,7 @@ import feedparser
 import requests
 from supabase import create_client
 
-SUPABASE_URL = "loyowilpsjueoqoejfnc"
+SUPABASE_URL = "https://loyowilpsjueoqoejfnc.supabase.co"
 SUPABASE_KEY= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxveW93aWxwc2p1ZW9xb2VqZm5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzM2MTksImV4cCI6MjA5MTI0OTYxOX0.sE7C1is_rSQYwv6kpX--QIEGyI2CBekHOygw4RS8ihs"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
