@@ -1,0 +1,22 @@
+name: Daily News Scraper
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch: 
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: pip install feedparser supabase google-myanmar-tools rabbit-python deep-translator
+      - name: Run Scraper
+        env:
+          SUPABASE_URL: ${{ secrets.https://loyowilpsjueoqoejfnc.supabase.co }}
+          SUPABASE_KEY: ${{ secrets.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxveW93aWxwc2p1ZW9xb2VqZm5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzM2MTksImV4cCI6MjA5MTI0OTYxOX0.sE7C1is_rSQYwv6kpX--QIEGyI2CBekHOygw4RS8ihs }}
+        run: python scraper.py
