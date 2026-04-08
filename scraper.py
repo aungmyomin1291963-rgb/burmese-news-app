@@ -1,10 +1,15 @@
+import os
 import feedparser
-import requests
 from supabase import create_client
+from google.myanmar_tools import ZawgyiDetector
+from rabbit import Rabbit
+from deep_translator import GoogleTranslator
 
-SUPABASE_URL = "https://loyowilpsjueoqoejfnc.supabase.co"
-SUPABASE_KEY= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxveW93aWxwc2p1ZW9xb2VqZm5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzM2MTksImV4cCI6MjA5MTI0OTYxOX0.sE7C1is_rSQYwv6kpX--QIEGyI2CBekHOygw4RS8ihs"
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+detector = ZawgyiDetector()
 
 RSS_FEEDS = {
 "Than Lwin Times": "https://rss.app/feeds/lCOwAQkTVNl5FV75.xml"
@@ -25,34 +30,8 @@ RSS_FEEDS = {
 "The Voice of Spring": "https://rss.app/feeds/BJt18TdAghRkjz71.xml"
 "Tharyarwaddy 8 City": "https://rss.app/feeds/hKSxNSniUZJPhSJP.xml"
 "မြေလတ်အသံ - Myaelatt Athan": "https://rss.app/feeds/DYBHIqk597c4RpC4.xml"
-"ဒို့ပြည် - Doh Pyay": "https://rss.app/feeds/sDyIGrVGeoX3fzyx.xml"
+"ဒို့ပြည် - Doh Pyay": "https://rss.app/feeds/sDyIGrVGeoX3fzyx.xml" 
 }
-
-def fetch_news():
-    for source, url in RSS_FEEDS.items():
-        feed = feedparser.parse(url)
-        for entry in feed.entries:
-            data = {
-                "title": entry.title,
-                "link": entry.link,
-                "published_date": entry.published, 
-                "content": entry.summary,
-                "source": source
-            }
-                       try:
-                supabase.table("news_articles").insert(data).execute()
-                print(f"Added: {entry.title}")
-            except Exception as e:
-                pass 
-
-if __name__ == "__main__":
-    fetch_news()
-
-from google.myanmar_tools import ZawgyiDetector
-from rabbit import Rabbit
-from deep_translator import GoogleTranslator
-
-detector = ZawgyiDetector()
 
 def normalize_burmese(text):
     score = detector.get_zawgyi_probability(text)
@@ -60,9 +39,26 @@ def normalize_burmese(text):
         return Rabbit.zg2uni(text)
     return text
 
-def analyze_sentiment(text):
-    try:
-        en_text = GoogleTranslator(source='my', target='en').translate(text)
-        return 0.0 
-    except:
-        return 0.0
+def fetch_news():
+    for source, url in RSS_FEEDS.items():
+        feed = feedparser.parse(url)
+        for entry in feed.entries:
+            clean_title = normalize_burmese(entry.title)
+            clean_summary = normalize_burmese(entry.summary)
+            
+            data = {
+                "title": clean_title,
+                "link": entry.link,
+                "published_date": entry.published,
+                "content": clean_summary,
+                "source": source
+            }
+            
+            try:
+                supabase.table("news_articles").insert(data).execute()
+                print(f"Added: {clean_title}")
+            except Exception as e:
+                pass 
+
+if __name__ == "__main__":
+    fetch_news()
