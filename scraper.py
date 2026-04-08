@@ -1,18 +1,15 @@
 import os
 import feedparser
 from supabase import create_client
-from google.myanmar_tools import ZawgyiDetector
-from rabbit import Rabbit
-from deep_translator import GoogleTranslator
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-detector = ZawgyiDetector()
 
 RSS_FEEDS = {
-"Than Lwin Times": "https://rss.app/feeds/lCOwAQkTVNl5FV75.xml"
+    "The Irrawaddy (Burmese)": "https://burma.irrawaddy.com/feed"
+    "Than Lwin Times": "https://rss.app/feeds/lCOwAQkTVNl5FV75.xml"
 "သံလွင်ခက် - Than Lwin Khet News": "https://rss.app/feeds/B09BS1AKoqer7B7X.xml"
 "Khit Thit Media": "https://rss.app/feeds/lncVLsVlJO4D60zy.xml"
 "People's Spring": "https://rss.app/feeds/YjnmcNNpbEmkl10U.xml"
@@ -30,33 +27,24 @@ RSS_FEEDS = {
 "The Voice of Spring": "https://rss.app/feeds/BJt18TdAghRkjz71.xml"
 "Tharyarwaddy 8 City": "https://rss.app/feeds/hKSxNSniUZJPhSJP.xml"
 "မြေလတ်အသံ - Myaelatt Athan": "https://rss.app/feeds/DYBHIqk597c4RpC4.xml"
-"ဒို့ပြည် - Doh Pyay": "https://rss.app/feeds/sDyIGrVGeoX3fzyx.xml" 
+"ဒို့ပြည် - Doh Pyay": "https://rss.app/feeds/sDyIGrVGeoX3fzyx.xml"
 }
-
-def normalize_burmese(text):
-    score = detector.get_zawgyi_probability(text)
-    if score > 0.9:
-        return Rabbit.zg2uni(text)
-    return text
 
 def fetch_news():
     for source, url in RSS_FEEDS.items():
         feed = feedparser.parse(url)
         for entry in feed.entries:
-            clean_title = normalize_burmese(entry.title)
-            clean_summary = normalize_burmese(entry.summary)
-            
             data = {
-                "title": clean_title,
+                "title": entry.title,
                 "link": entry.link,
                 "published_date": entry.published,
-                "content": clean_summary,
+                "content": entry.summary,
                 "source": source
             }
             
             try:
                 supabase.table("news_articles").insert(data).execute()
-                print(f"Added: {clean_title}")
+                print(f"Added: {entry.title}")
             except Exception as e:
                 pass 
 
