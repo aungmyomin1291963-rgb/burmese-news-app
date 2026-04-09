@@ -2,13 +2,11 @@ import os
 import feedparser
 from supabase import create_client
 
-# Securely grab credentials from GitHub Actions
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Your expanded list of Burmese News Feeds
 RSS_FEEDS = {
     "Than Lwin Times": "https://rss.app/feeds/lCOwAQkTVNl5FV75.xml",
     "သံလွင်ခက် - Than Lwin Khet News": "https://rss.app/feeds/B09BS1AKoqer7B7X.xml",
@@ -46,14 +44,12 @@ def fetch_news():
                     "source": source
                 }
                 
-                # Try saving to database
                 try:
                     supabase.table("news_articles").insert(data).execute()
                     print(f"  -> Added: {data['title']}")
                 except Exception as e:
-                    pass # Ignores duplicates if we already scraped this article
+                    print(f"  -> Database Error: {e}") 
         except Exception as e:
-            # If the whole feed is broken, print an error and move to the next one!
             print(f"  -> FAILED to read {source}. Skipping...")
             continue 
 
